@@ -4,7 +4,7 @@ export default function Header() {
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-lol-gold/5 to-transparent"></div>
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-lol-gold/10 rounded-full blur-3xl"></div>
-      
+
       <div className="relative z-10">
         {/* Main title */}
         <div className="mb-6">
@@ -18,7 +18,8 @@ export default function Header() {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-gray-300 font-inter max-w-2xl mx-auto leading-relaxed">
-          Discover detailed summoner statistics, rankings, and performance insights
+          Discover detailed summoner statistics, rankings, and performance
+          insights
         </p>
 
         {/* Decorative elements */}

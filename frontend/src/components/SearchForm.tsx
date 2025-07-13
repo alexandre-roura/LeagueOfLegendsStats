@@ -21,8 +21,12 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form header */}
         <div className="text-center mb-6">
-          <h3 className="text-xl font-semibold text-lol-gold mb-2">Search Summoner</h3>
-          <p className="text-gray-400 text-sm">Enter summoner name and region tag</p>
+          <h3 className="text-xl font-semibold text-lol-gold mb-2">
+            Search Summoner
+          </h3>
+          <p className="text-gray-400 text-sm">
+            Enter summoner name and region tag
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -94,7 +98,7 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
               </>
             )}
           </div>
-          
+
           {/* Button glow effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-lol-gold/20 to-yellow-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur"></div>
         </button>
@@ -103,7 +107,19 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
         <div className="text-center">
           <p className="text-xs text-gray-500 mb-2">Popular regions:</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {['EUW', 'NA1', 'KR', 'EUN1', 'BR1', 'JP1', 'LAN', 'LAS', 'OCE', 'RU', 'TR1'].map((region) => (
+            {[
+              "EUW",
+              "NA1",
+              "KR",
+              "EUN1",
+              "BR1",
+              "JP1",
+              "LAN",
+              "LAS",
+              "OCE",
+              "RU",
+              "TR1",
+            ].map((region) => (
               <button
                 key={region}
                 type="button"

@@ -14,14 +14,14 @@ export default function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
               <span className="text-2xl">⚠️</span>
             </div>
           </div>
-          
+
           {/* Error Content */}
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-red-200 mb-2">
               Summoner Not Found
             </h3>
             <p className="text-red-300 mb-4">{message}</p>
-            
+
             <div className="space-y-2 text-sm text-red-200/80">
               <p>• Make sure the summoner name is spelled correctly</p>
               <p>• Verify the tag line matches the region</p>

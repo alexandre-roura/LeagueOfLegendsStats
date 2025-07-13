@@ -11,7 +11,10 @@ function App() {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastSearch, setLastSearch] = useState<{ summonerName: string; tagLine: string } | null>(null);
+  const [lastSearch, setLastSearch] = useState<{
+    summonerName: string;
+    tagLine: string;
+  } | null>(null);
 
   const handleSearch = async (summonerName: string, tagLine: string) => {
     setLoading(true);
@@ -27,7 +30,9 @@ function App() {
       console.log(`Response status: ${response.status}`);
 
       if (!response.ok) {
-        throw new Error(`Player "${summonerName}#${tagLine}" not found. Please check the summoner name and tag line.`);
+        throw new Error(
+          `Player "${summonerName}#${tagLine}" not found. Please check the summoner name and tag line.`
+        );
       }
 
       const data = await response.json();
@@ -37,7 +42,11 @@ function App() {
         throw new Error("Failed to fetch player data from the server.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred while fetching player data.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while fetching player data."
+      );
     } finally {
       setLoading(false);
     }
@@ -54,8 +63,14 @@ function App() {
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-lol-gold/3 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-lol-blue/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-lol-gold/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }}></div>
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-lol-blue/2 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "3s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-lol-gold/2 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "1.5s" }}
+        ></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8">
@@ -68,9 +83,7 @@ function App() {
         </div>
 
         {/* Error Message */}
-        {error && (
-          <ErrorMessage message={error} onRetry={handleRetry} />
-        )}
+        {error && <ErrorMessage message={error} onRetry={handleRetry} />}
 
         {/* Loading State */}
         {loading && (
@@ -92,7 +105,8 @@ function App() {
               Ready to Explore the Rift
             </h3>
             <p className="text-gray-400 text-lg">
-              Enter a summoner name and region to view detailed statistics, rankings, and performance insights.
+              Enter a summoner name and region to view detailed statistics,
+              rankings, and performance insights.
             </p>
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-500">
               <div className="bg-gray-800/30 rounded-lg p-3">
@@ -119,7 +133,8 @@ function App() {
         <footer className="mt-20 text-center">
           <div className="inline-block bg-gray-800/30 backdrop-blur-sm rounded-xl px-6 py-4 border border-gray-700/50">
             <p className="text-gray-400 text-sm">
-              League of Legends Stats Tracker • Built with ❤️ using React & FastAPI
+              League of Legends Stats Tracker • Built with ❤️ using React &
+              FastAPI
             </p>
             <p className="text-gray-500 text-xs mt-1">
               League of Legends is a trademark of Riot Games, Inc.

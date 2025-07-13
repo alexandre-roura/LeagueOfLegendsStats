@@ -51,7 +51,7 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-lol-gold/5 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-lol-gold/5 rounded-full blur-2xl"></div>
-        
+
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
             {/* Profile Icon */}
@@ -72,11 +72,15 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
                 {account.gameName}
               </h2>
               <div className="flex items-center justify-center md:justify-start space-x-2 mb-4">
-                <span className="text-lol-gold font-semibold">#{account.tagLine}</span>
+                <span className="text-lol-gold font-semibold">
+                  #{account.tagLine}
+                </span>
                 <span className="text-gray-400">•</span>
-                <span className="text-gray-300">Level {summoner.summonerLevel}</span>
+                <span className="text-gray-300">
+                  Level {summoner.summonerLevel}
+                </span>
               </div>
-              
+
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 <StatCard
@@ -121,7 +125,9 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
         {rankings.length === 0 ? (
           <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-12 border border-gray-700/50 text-center">
             <div className="text-6xl mb-4">🎮</div>
-            <h4 className="text-xl font-semibold text-gray-300 mb-2">No Ranked Games</h4>
+            <h4 className="text-xl font-semibold text-gray-300 mb-2">
+              No Ranked Games
+            </h4>
             <p className="text-gray-400">
               This summoner hasn't played any ranked games this season.
             </p>
@@ -137,7 +143,9 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
                 {/* Queue Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getQueueIcon(ranking.queueType)}</span>
+                    <span className="text-2xl">
+                      {getQueueIcon(ranking.queueType)}
+                    </span>
                     <h4 className="text-lg font-semibold text-white">
                       {getQueueName(ranking.queueType)}
                     </h4>
@@ -176,7 +184,10 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
                 {/* Win Rate Circle */}
                 <div className="flex items-center justify-center mb-6">
                   <div className="relative w-20 h-20">
-                    <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
+                    <svg
+                      className="w-20 h-20 transform -rotate-90"
+                      viewBox="0 0 100 100"
+                    >
                       <circle
                         cx="50"
                         cy="50"
@@ -193,20 +204,29 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
                         stroke="currentColor"
                         strokeWidth="8"
                         fill="transparent"
-                        strokeDasharray={`${Math.round((ranking.wins / (ranking.wins + ranking.losses)) * 251.32)} 251.32`}
+                        strokeDasharray={`${Math.round(
+                          (ranking.wins / (ranking.wins + ranking.losses)) *
+                            251.32
+                        )} 251.32`}
                         className="text-lol-gold transition-all duration-1000 ease-out"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-sm font-bold text-white">
-                        {Math.round((ranking.wins / (ranking.wins + ranking.losses)) * 100)}%
+                        {Math.round(
+                          (ranking.wins / (ranking.wins + ranking.losses)) * 100
+                        )}
+                        %
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Status Badges */}
-                {(ranking.hotStreak || ranking.veteran || ranking.freshBlood || ranking.inactive) && (
+                {(ranking.hotStreak ||
+                  ranking.veteran ||
+                  ranking.freshBlood ||
+                  ranking.inactive) && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {ranking.hotStreak && (
                       <StatusBadge type="hotStreak">Hot Streak</StatusBadge>
@@ -228,21 +248,31 @@ export default function PlayerInfo({ playerData }: PlayerInfoProps) {
                   <div className="bg-gradient-to-r from-lol-gold/20 to-yellow-500/20 backdrop-blur-sm rounded-xl p-4 border border-lol-gold/30">
                     <div className="flex items-center space-x-2 mb-3">
                       <span className="text-xl">🚀</span>
-                      <span className="text-lol-gold font-bold">Promotion Series</span>
+                      <span className="text-lol-gold font-bold">
+                        Promotion Series
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center">
                         <p className="text-xs text-gray-400">Progress</p>
-                        <p className="text-lg font-bold text-white">{ranking.miniSeries.progress}</p>
+                        <p className="text-lg font-bold text-white">
+                          {ranking.miniSeries.progress}
+                        </p>
                       </div>
                       <div className="text-center">
                         <p className="text-xs text-gray-400">Target</p>
-                        <p className="text-lg font-bold text-lol-gold">{ranking.miniSeries.target}</p>
+                        <p className="text-lg font-bold text-lol-gold">
+                          {ranking.miniSeries.target}
+                        </p>
                       </div>
                     </div>
                     <div className="flex justify-center space-x-4 mt-2">
-                      <span className="text-green-400">W: {ranking.miniSeries.wins}</span>
-                      <span className="text-red-400">L: {ranking.miniSeries.losses}</span>
+                      <span className="text-green-400">
+                        W: {ranking.miniSeries.wins}
+                      </span>
+                      <span className="text-red-400">
+                        L: {ranking.miniSeries.losses}
+                      </span>
                     </div>
                   </div>
                 )}
