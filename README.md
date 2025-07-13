@@ -27,7 +27,7 @@ A robust FastAPI-based REST API for retrieving League of Legends player statisti
 
 2. **Install dependencies**
    ```bash
-   pip install fastapi uvicorn pydantic python-dotenv requests
+   pip install -r requirements.txt
    ```
 
 3. **Environment setup**
