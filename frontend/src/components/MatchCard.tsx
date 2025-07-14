@@ -23,6 +23,7 @@ export default function MatchCard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -45,7 +46,11 @@ export default function MatchCard({
         console.error("Error fetching match details:", error);
         setError(error instanceof Error ? error.message : "Unknown error");
       } finally {
-        setLoading(false);
+        // Add a minimum loading time for better UX
+        setTimeout(() => {
+          setLoading(false);
+          setShowContent(true);
+        }, 300);
       }
     };
 
@@ -54,13 +59,42 @@ export default function MatchCard({
 
   if (loading) {
     return (
-      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-        <div className="animate-pulse flex space-x-4">
-          <div className="w-12 h-12 bg-gray-700 rounded"></div>
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-            <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+      <div className="bg-gray-800/50 rounded-lg border border-gray-700/50 overflow-hidden">
+        {/* Skeleton Header */}
+        <div className="bg-gray-800/40 px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-gray-600 rounded animate-pulse"></div>
+              <div className="w-16 h-3 bg-gray-600 rounded animate-pulse"></div>
+            </div>
+            <div className="w-24 h-3 bg-gray-600 rounded animate-pulse"></div>
           </div>
+          <div className="w-20 h-6 bg-gray-600 rounded animate-pulse"></div>
+        </div>
+        
+        {/* Skeleton Content */}
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Champion Avatar Skeleton */}
+            <div className="w-16 h-16 bg-gray-600 rounded-lg animate-pulse relative">
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-500 rounded-full"></div>
+            </div>
+            
+            {/* KDA Skeleton */}
+            <div className="text-center min-w-[80px] space-y-2">
+              <div className="w-20 h-5 bg-gray-600 rounded animate-pulse mx-auto"></div>
+              <div className="w-16 h-4 bg-gray-600 rounded animate-pulse mx-auto"></div>
+            </div>
+            
+            {/* Stats Skeleton */}
+            <div className="text-center min-w-[80px] space-y-2">
+              <div className="w-24 h-4 bg-gray-600 rounded animate-pulse mx-auto"></div>
+              <div className="w-16 h-3 bg-gray-600 rounded animate-pulse mx-auto"></div>
+            </div>
+          </div>
+          
+          {/* Arrow Skeleton */}
+          <div className="w-4 h-4 bg-gray-600 rounded animate-pulse"></div>
         </div>
       </div>
     );
@@ -144,13 +178,14 @@ export default function MatchCard({
   return (
     <div
       className={`
-        bg-gradient-to-r rounded-lg border transition-all duration-300 cursor-pointer
+        bg-gradient-to-r rounded-lg border transition-all duration-500 cursor-pointer
         ${
           isWin
             ? "from-green-900/30 to-green-800/20 border-green-500/30 hover:border-green-400/50"
             : "from-red-900/30 to-red-800/20 border-red-500/30 hover:border-red-400/50"
         }
         hover:scale-[1.02] hover:shadow-lg
+        ${showContent ? 'opacity-100 translate-y-0' : 'opacity-80 translate-y-1'}
       `}
       onClick={() => setExpanded(!expanded)}
     >
