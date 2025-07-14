@@ -93,6 +93,30 @@ export default function MatchCard({
             </div>
           </div>
           
+          {/* Players List Skeleton - Arena mode with placements */}
+          <div className="flex items-center space-x-2 mx-4">
+            <div className="flex flex-col space-y-1">
+              {Array.from({ length: 4 }).map((_, teamIndex) => (
+                <div key={teamIndex} className="flex items-center space-x-2">
+                  {/* Placement skeleton */}
+                  <div className="w-6 h-4 bg-gray-600 rounded animate-pulse"></div>
+                  
+                  {/* Two players skeleton */}
+                  <div className="flex space-x-1">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-4 h-4 bg-gray-600 rounded-full animate-pulse"></div>
+                      <div className="w-5 h-2 bg-gray-600 rounded animate-pulse"></div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-4 h-4 bg-gray-600 rounded-full animate-pulse"></div>
+                      <div className="w-5 h-2 bg-gray-600 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
           {/* Arrow Skeleton */}
           <div className="w-4 h-4 bg-gray-600 rounded animate-pulse"></div>
         </div>
@@ -163,7 +187,12 @@ export default function MatchCard({
       "Kha'Zix": "Khazix",
       "Kog'Maw": "KogMaw",
       "Rek'Sai": "RekSai",
+      "FiddleSticks": "Fiddlesticks",
     };
+
+    
+    const test = specialCases[name] || name.replace(/[^a-zA-Z0-9]/g, "");
+    console.log("Formatted champion name:", test);  
 
     return specialCases[name] || name.replace(/[^a-zA-Z0-9]/g, "");
   };
@@ -288,10 +317,135 @@ export default function MatchCard({
               `}
             >
               {kdaRatio.toFixed(2)} KDA
+            </div>        </div>
+
+        {/* Items Display */}
+        <div className="flex items-center space-x-1 mx-4">
+          {/* Left side - 6 items in 2 rows of 3 */}
+          <div className="flex flex-col space-y-1">
+            {/* First row - 3 items */}
+            <div className="flex space-x-1">
+              {[currentPlayer.item0, currentPlayer.item1, currentPlayer.item2].map((itemId, index) => (
+                <div
+                  key={index}
+                  className={`
+                    w-6 h-6 rounded border relative overflow-hidden
+                    ${
+                      itemId === 0
+                        ? "border-gray-600/50 bg-gray-800/30"
+                        : "border-lol-gold/30 bg-gray-900/50"
+                    }
+                  `}
+                >
+                  {itemId === 0 ? (
+                    <div className="w-full h-full bg-gray-700/20"></div>
+                  ) : (
+                    <>
+                      <img
+                        src={getItemImageUrl(itemId) || ""}
+                        alt={`Item ${itemId}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove("hidden");
+                            fallback.classList.add("flex");
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center text-lol-gold text-[8px] font-semibold bg-gray-800/80">
+                        {itemId.toString().slice(-2)}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {/* Second row - 3 items */}
+            <div className="flex space-x-1">
+              {[currentPlayer.item3, currentPlayer.item4, currentPlayer.item5].map((itemId, index) => (
+                <div
+                  key={index + 3}
+                  className={`
+                    w-6 h-6 rounded border relative overflow-hidden
+                    ${
+                      itemId === 0
+                        ? "border-gray-600/50 bg-gray-800/30"
+                        : "border-lol-gold/30 bg-gray-900/50"
+                    }
+                  `}
+                >
+                  {itemId === 0 ? (
+                    <div className="w-full h-full bg-gray-700/20"></div>
+                  ) : (
+                    <>
+                      <img
+                        src={getItemImageUrl(itemId) || ""}
+                        alt={`Item ${itemId}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove("hidden");
+                            fallback.classList.add("flex");
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center text-lol-gold text-[8px] font-semibold bg-gray-800/80">
+                        {itemId.toString().slice(-2)}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
+          
+          {/* Right side - 1 trinket item */}
+          <div className="flex items-center">
+            <div
+              className={`
+                w-6 h-6 rounded border relative overflow-hidden
+                ${
+                  currentPlayer.item6 === 0
+                    ? "border-gray-600/50 bg-gray-800/30"
+                    : "border-lol-gold/30 bg-gray-900/50"
+                }
+              `}
+            >
+              {currentPlayer.item6 === 0 ? (
+                <div className="w-full h-full bg-gray-700/20"></div>
+              ) : (
+                <>
+                  <img
+                    src={getItemImageUrl(currentPlayer.item6) || ""}
+                    alt={`Item ${currentPlayer.item6}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) {
+                        fallback.classList.remove("hidden");
+                        fallback.classList.add("flex");
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 hidden items-center justify-center text-lol-gold text-[8px] font-semibold bg-gray-800/80">
+                    {currentPlayer.item6.toString().slice(-2)}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
 
-          {/* CS and Kill Participation - Hidden for Arena */}
+        {/* CS and Kill Participation - Hidden for Arena */}
           {!isArenaMode && (
             <div className="text-center min-w-[80px]">
               <div className="text-white font-bold text-sm">
@@ -325,6 +479,206 @@ export default function MatchCard({
                   : `TOP ${currentPlayer.placement}`}
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Players List - Teams face to face */}
+        <div className="flex items-center space-x-2 mx-4">
+          {isArenaMode ? (
+            /* Arena Mode - 4 teams with placement + 2 players each */
+            <div className="flex flex-col space-y-1">
+              {Array.from({ length: 4 }).map((_, rankIndex) => {
+                const placement = rankIndex + 1;
+                
+                // Get players with this placement (should be 2 teammates)
+                const teamPlayers = matchData.info.participants
+                  .filter(p => p.placement === placement)
+                  .slice(0, 2);
+                
+                // If no players found for this placement, skip
+                if (teamPlayers.length === 0) return null;
+                
+                return (
+                  <div key={placement} className="flex items-center space-x-2">
+                    {/* Team Placement */}
+                    <div 
+                      className={`
+                        text-xs font-bold px-1 py-0.5 rounded min-w-[32px] text-center
+                        ${placement === 1 
+                          ? "bg-yellow-600/30 text-yellow-400" 
+                          : placement === 2 
+                          ? "bg-orange-600/30 text-orange-400"
+                          : placement <= 4
+                          ? "bg-blue-600/30 text-blue-400"
+                          : "bg-gray-600/30 text-gray-400"}
+                      `}
+                    >
+                      #{placement}
+                    </div>
+                    
+                    {/* Team Players (2 on same line) */}
+                    <div className="flex space-x-2">
+                      {teamPlayers.map((participant) => {
+                        const displayName = participant.riotIdGameName || "?";
+                        
+                        return (
+                        <div key={participant.puuid} className="flex items-center space-x-1.5">
+                          <div 
+                            className={`
+                              w-4 h-4 rounded-full overflow-hidden border relative
+                              ${participant.puuid === currentPlayerPuuid 
+                                ? "border-yellow-400/80 ring-1 ring-yellow-400/60" 
+                                : "border-purple-400/50"}
+                            `}
+                          >
+                            <img
+                              src={`https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/champion/${formatChampionName(participant.championName)}.png`}
+                              alt={`${participant.championName} champion`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) {
+                                  fallback.classList.remove("hidden");
+                                  fallback.classList.add("flex");
+                                }
+                              }}
+                            />
+                            <div className="absolute inset-0 hidden items-center justify-center text-xs font-bold bg-gray-700 text-white">
+                              {participant.championName.slice(0, 2).toUpperCase()}
+                            </div>
+                          </div>
+                          <span 
+                            className={`
+                              text-[10px] truncate w-[36px] text-left
+                              ${participant.puuid === currentPlayerPuuid 
+                                ? "text-yellow-400 font-semibold" 
+                                : "text-gray-400"}
+                            `}
+                            title={displayName}
+                          >
+                            {displayName}
+                          </span>
+                        </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }).filter(Boolean)}
+            </div>
+          ) : (
+            /* Ranked/Normal Mode - 2 teams of 5 players each */
+            <>
+              {/* Team 1 (left side) */}
+              <div className="flex flex-col space-y-0.5">
+                {matchData.info.participants
+                  .filter(p => p.teamId === 100)
+                  .map((participant) => {
+                    const displayName = participant.riotIdGameName || "?";
+                    
+                    return (
+                  <div key={participant.puuid} className="flex items-center space-x-1">
+                    <div 
+                      className={`
+                        w-4 h-4 rounded-full overflow-hidden border relative
+                        ${participant.teamId === currentPlayer.teamId 
+                          ? "border-blue-400/60" 
+                          : "border-red-400/60"}
+                        ${participant.puuid === currentPlayerPuuid 
+                          ? "ring-1 ring-yellow-400/80" 
+                          : ""}
+                      `}
+                    >
+                      <img
+                        src={`https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/champion/${formatChampionName(participant.championName)}.png`}
+                        alt={`${participant.championName} champion`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove("hidden");
+                            fallback.classList.add("flex");
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center text-xs font-bold bg-gray-700 text-white">
+                        {participant.championName.slice(0, 2).toUpperCase()}
+                      </div>
+                    </div>
+                    <span 
+                      className={`
+                        text-[10px] truncate max-w-[36px] text-left
+                        ${participant.puuid === currentPlayerPuuid 
+                          ? "text-yellow-400 font-semibold" 
+                          : "text-gray-400"}
+                      `}
+                      title={displayName}
+                    >
+                      {displayName}
+                    </span>
+                  </div>
+                    );
+                  })}
+              </div>
+
+              {/* Team 2 (right side) */}
+              <div className="flex flex-col space-y-0.5">
+                {matchData.info.participants
+                  .filter(p => p.teamId === 200)
+                  .map((participant) => {
+                    const displayName = participant.riotIdGameName || "?";
+                    
+                    return (
+                  <div key={participant.puuid} className="flex items-center space-x-1">
+                    <div 
+                      className={`
+                        w-4 h-4 rounded-full overflow-hidden border relative
+                        ${participant.teamId === currentPlayer.teamId 
+                          ? "border-blue-400/60" 
+                          : "border-red-400/60"}
+                        ${participant.puuid === currentPlayerPuuid 
+                          ? "ring-1 ring-yellow-400/80" 
+                          : ""}
+                      `}
+                    >
+                      <img
+                        src={`https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/champion/${formatChampionName(participant.championName)}.png`}
+                        alt={`${participant.championName} champion`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove("hidden");
+                            fallback.classList.add("flex");
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center text-xs font-bold bg-gray-700 text-white">
+                        {participant.championName.slice(0, 2).toUpperCase()}
+                      </div>
+                    </div>
+                    <span 
+                      className={`
+                        text-[10px] truncate w-[36px] text-left
+                        ${participant.puuid === currentPlayerPuuid 
+                          ? "text-yellow-400 font-semibold" 
+                          : "text-gray-400"}
+                      `}
+                      title={displayName}
+                    >
+                      {displayName}
+                    </span>
+                  </div>
+                    );
+                  })}
+              </div>
+            </>
           )}
         </div>
 
@@ -410,62 +764,6 @@ export default function MatchCard({
                   </span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Items */}
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-gray-300 mb-2">Items</h4>
-            <div className="flex space-x-2">
-              {[
-                currentPlayer.item0,
-                currentPlayer.item1,
-                currentPlayer.item2,
-                currentPlayer.item3,
-                currentPlayer.item4,
-                currentPlayer.item5,
-                currentPlayer.item6,
-              ].map((itemId, index) => (
-                <div
-                  key={index}
-                  className={`
-                    w-12 h-12 rounded border-2 relative overflow-hidden transition-transform hover:scale-105
-                    ${
-                      itemId === 0
-                        ? "border-gray-600 bg-gray-800/50"
-                        : "border-lol-gold/30 bg-gray-900 hover:border-lol-gold/50"
-                    }
-                  `}
-                >
-                  {itemId === 0 ? (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                      —
-                    </div>
-                  ) : (
-                    <>
-                      <img
-                        src={getItemImageUrl(itemId) || ""}
-                        alt={`Item ${itemId}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Show item ID fallback if Data Dragon fails
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = "none";
-                          const fallback =
-                            target.nextElementSibling as HTMLElement;
-                          if (fallback) {
-                            fallback.classList.remove("hidden");
-                            fallback.classList.add("flex");
-                          }
-                        }}
-                      />
-                      <div className="absolute inset-0 hidden items-center justify-center text-lol-gold text-xs font-semibold bg-gray-800/80">
-                        {itemId.toString().slice(-2)}
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         </div>
