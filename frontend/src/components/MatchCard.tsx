@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMatchData } from "../hooks/useMatchData";
 import { useChampionImageUrl } from "../hooks/useChampionImageUrl";
+import { getFormattedGameVersion } from "../utils";
 
 // Match components
 import SkeletonLoader from "./match/SkeletonLoader";
@@ -31,10 +32,8 @@ export default function MatchCard({
     region,
   });
 
-  // Get game version from match data, with fallback
-  const gameVersion = matchData?.info.gameVersion
-    ? matchData.info.gameVersion.split(".").slice(0, 2).join(".") + ".1"
-    : "14.24.1"; // fallback version
+  // Get game version from match data using utility function
+  const gameVersion = getFormattedGameVersion(matchData?.info.gameVersion);
 
   const { getChampionImageUrl } = useChampionImageUrl(gameVersion);
 
@@ -115,7 +114,7 @@ export default function MatchCard({
           <KDAStats participant={currentPlayer} />
 
           {/* Items Display */}
-          <ItemsDisplay participant={currentPlayer} />
+          <ItemsDisplay participant={currentPlayer} gameVersion={gameVersion} />
 
           {/* Game Mode Specific Stats */}
           <GameModeStats

@@ -202,7 +202,7 @@ export function getQueueIcon(queueId: number): string {
   }
 
   if (name.includes("aram")) return "❄️";
-  if (name.includes("urf")) return "⚡";
+  if (name.includes("urf")) return "⚡️";
   if (name.includes("arena")) return "⚔️";
   if (name.includes("clash")) return "🥇";
   if (name.includes("tutorial")) return "📚";

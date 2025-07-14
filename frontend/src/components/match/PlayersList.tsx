@@ -15,6 +15,7 @@ export default function PlayersList({
   gameVersion,
 }: PlayersListProps) {
   const { getChampionImageUrl } = useChampionImageUrl(gameVersion);
+  console.log("PlayersList participants:", participants);
 
   const truncateName = (name: string) => {
     return name.length > 8 ? name.slice(0, 5) + "..." : name;

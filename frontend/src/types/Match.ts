@@ -166,6 +166,7 @@ export interface ParticipantDto {
   win: boolean;
   challenges?: ChallengesDto;
   placement?: number; // Arena placement (1-8)
+  playerSubteamId?: number; // Arena team identifier
 }
 
 export interface MatchInfoDto {

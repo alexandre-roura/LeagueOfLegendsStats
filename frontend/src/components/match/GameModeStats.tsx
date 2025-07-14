@@ -1,5 +1,6 @@
 import type { ParticipantDto } from "../../types/Match";
 import { formatNumber } from "../../utils/timeUtils";
+import { getArenaTeamImageUrl, getArenaTeamName } from "../../utils/arenaTeams";
 
 interface GameModeStatsProps {
   participant: ParticipantDto;
@@ -15,6 +16,9 @@ export default function GameModeStats({
   killParticipation,
 }: GameModeStatsProps) {
   if (isArenaMode && participant.placement) {
+    const teamImageUrl = getArenaTeamImageUrl(participant.playerSubteamId);
+    const teamName = getArenaTeamName(participant.playerSubteamId);
+
     return (
       <div className="text-center min-w-[80px]">
         <div
@@ -34,6 +38,21 @@ export default function GameModeStats({
           {participant.placement === 1
             ? "WINNER"
             : `TOP ${participant.placement}`}
+        </div>
+        <div className="flex items-center justify-center mt-1 space-x-1">
+          {teamImageUrl && (
+            <img
+              src={teamImageUrl}
+              alt={teamName}
+              className="w-4 h-4"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          )}
+          <span className="text-gray-400 text-xs">
+            {teamName}
+          </span>
         </div>
       </div>
     );

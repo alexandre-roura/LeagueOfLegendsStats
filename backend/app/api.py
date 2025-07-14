@@ -71,7 +71,8 @@ class RiotApiClient:
         
         # API key validation
         if not self.api_key:
-            raise ValueError("RIOT_API_KEY is not defined in environment variables")
+            print("⚠️  WARNING: RIOT_API_KEY is not defined. API calls will fail.")
+            self.api_key = "DEVELOPMENT_MODE"
         
         # Default headers
         self.headers: Dict[str, str] = {

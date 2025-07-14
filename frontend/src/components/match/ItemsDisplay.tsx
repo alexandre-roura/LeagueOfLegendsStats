@@ -1,25 +1,17 @@
 import type { ParticipantDto } from "../../types/Match";
+import { useItemImageUrl } from "../../hooks/useItemImageUrl";
 
 interface ItemsDisplayProps {
   participant: ParticipantDto;
+  gameVersion?: string;
 }
 
-export default function ItemsDisplay({ participant }: ItemsDisplayProps) {
-  const getItemImageUrl = (itemId: number) => {
-    if (itemId === 0) return "";
-    return `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/item/${itemId}.png`;
-  };
+export default function ItemsDisplay({ participant, gameVersion }: ItemsDisplayProps) {
+  const { getItemImageUrl, isValidItemId, getParticipantItems } = useItemImageUrl(gameVersion);
 
-  const mainItems = [
-    participant.item0,
-    participant.item1,
-    participant.item2,
-    participant.item3,
-    participant.item4,
-    participant.item5,
-  ];
-
-  const trinket = participant.item6;
+  const participantItems = getParticipantItems(participant);
+  const mainItems = participantItems.slice(0, 6); // Items 0-5
+  const trinket = participantItems[6]; // Item 6
 
   return (
     <div className="flex items-center space-x-2">
@@ -30,7 +22,7 @@ export default function ItemsDisplay({ participant }: ItemsDisplayProps) {
             key={index}
             className="w-7 h-7 bg-gray-700 rounded border border-gray-600"
           >
-            {itemId > 0 && (
+            {isValidItemId(itemId) && (
               <img
                 src={getItemImageUrl(itemId)}
                 alt={`Item ${itemId}`}
@@ -46,7 +38,7 @@ export default function ItemsDisplay({ participant }: ItemsDisplayProps) {
 
       {/* Trinket */}
       <div className="w-7 h-7 bg-gray-700 rounded border border-gray-600">
-        {trinket > 0 && (
+        {isValidItemId(trinket) && (
           <img
             src={getItemImageUrl(trinket)}
             alt={`Trinket ${trinket}`}
