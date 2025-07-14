@@ -14,24 +14,29 @@ function App() {
   const [lastSearch, setLastSearch] = useState<{
     summonerName: string;
     tagLine: string;
+    region: string;
   } | null>(null);
 
-  const handleSearch = async (summonerName: string, tagLine: string) => {
+  const handleSearch = async (
+    summonerName: string,
+    tagLine: string,
+    region: string
+  ) => {
     setLoading(true);
     setError(null);
     setPlayerData(null);
-    setLastSearch({ summonerName, tagLine });
+    setLastSearch({ summonerName, tagLine, region });
 
     try {
       const endpoint = API_CONFIG.ENDPOINTS.PLAYER(summonerName, tagLine);
-      const url = getApiUrl(endpoint);
+      const url = getApiUrl(endpoint) + `?region=${region}`;
       console.log(`Fetching player data from: ${url}`);
       const response = await fetch(url);
       console.log(`Response status: ${response.status}`);
 
       if (!response.ok) {
         throw new Error(
-          `Player "${summonerName}#${tagLine}" not found. Please check the summoner name and tag line.`
+          `Player "${summonerName}#${tagLine}" not found in ${region}. Please check the summoner name, tag line, and region.`
         );
       }
 
@@ -54,7 +59,11 @@ function App() {
 
   const handleRetry = () => {
     if (lastSearch) {
-      handleSearch(lastSearch.summonerName, lastSearch.tagLine);
+      handleSearch(
+        lastSearch.summonerName,
+        lastSearch.tagLine,
+        lastSearch.region
+      );
     }
   };
 
@@ -93,7 +102,10 @@ function App() {
         {/* Player Information */}
         {playerData && !loading && (
           <div className="max-w-6xl mx-auto">
-            <PlayerInfo playerData={playerData} />
+            <PlayerInfo
+              playerData={playerData}
+              region={lastSearch?.region || "EUW"}
+            />
           </div>
         )}
 

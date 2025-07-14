@@ -8,6 +8,8 @@ export const API_CONFIG = {
       `/player/${summonerName}/${tagLine}`,
     SUMMONER_BY_PUUID: (puuid: string) => `/summoner/puuid/${puuid}`,
     RANKINGS: (summonerId: string) => `/rankings/${summonerId}`,
+    MATCH_HISTORY: (puuid: string) => `/matches/by-puuid/${puuid}/ids`,
+    MATCH_DETAILS: (matchId: string) => `/matches/${matchId}`,
   },
 };
 
