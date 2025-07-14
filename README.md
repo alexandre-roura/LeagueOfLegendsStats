@@ -4,7 +4,8 @@ A full-stack application for retrieving and displaying League of Legends player 
 
 ## 🚀 Features
 
-- **Player Statistics**: Complete player data including rankings and match history
+- **Player Statistics**: Complete player data including rankings and detailed match history
+- **Match History Display**: Visual match cards with champion/item images, KDA, and Arena mode support
 - **Real-time Search**: Fast player lookup with region selection
 - **Responsive Design**: Works on desktop and mobile devices
 - **Type Safety**: Full TypeScript and Pydantic integration
@@ -77,9 +78,11 @@ npm run dev
 - `GET /player/{summoner_name}/{tag_line}` - Complete player information
 - `GET /account/{summoner_name}/{tag_line}` - Account information
 - `GET /summoner/puuid/{puuid}` - Summoner by PUUID
-- `GET /rankings/{puuid}` - League rankings
+- `GET /rankings/{summoner_id}` - League rankings
+- `GET /matches/by-puuid/{puuid}/ids` - Match history (list of match IDs)
+- `GET /matches/{match_id}` - Detailed match information
 
-**Example:** `GET /player/Faker/T1`
+**Example:** `GET /player/Faker/T1?region=kr`
 
 ## 🏗️ Tech Stack
 
@@ -94,7 +97,9 @@ LeagueOfLegendsStats/
 │   ├── app/          # Core application modules
 │   └── main.py       # Application entry point
 ├── frontend/         # React application
-│   └── src/          # Source code
+│   ├── src/          # Source code
+│   └── public/
+│       └── assets/   # Champion and item images
 └── README.md
 ```
 
