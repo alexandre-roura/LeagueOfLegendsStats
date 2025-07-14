@@ -78,8 +78,23 @@ export default function PlayerInfo({
         <div className="flex items-center space-x-4">
           {/* Profile Icon */}
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-lol-gold to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold text-lol-dark">
+            <div className="w-16 h-16 bg-gradient-to-br from-lol-gold to-yellow-500 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+              <img
+                src={`https://ddragon.leagueoflegends.com/cdn/15.13.1/img/profileicon/${summoner.profileIconId}.png`}
+                alt={`Profile Icon ${summoner.profileIconId}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Show profile icon ID as fallback
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) {
+                    fallback.classList.remove("hidden");
+                    fallback.classList.add("flex");
+                  }
+                }}
+              />
+              <span className="hidden text-xl font-bold text-lol-dark items-center justify-center w-full h-full">
                 {summoner.profileIconId}
               </span>
             </div>

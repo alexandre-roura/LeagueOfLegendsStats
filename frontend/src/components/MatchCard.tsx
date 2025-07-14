@@ -116,9 +116,9 @@ export default function MatchCard({
   const gameDuration = formatGameDuration(matchData.info.gameDuration);
   const timeAgo = formatTimeAgo(matchData.info.gameEndTimestamp);
 
-  // Local asset paths for champion and item images
+  // Format champion name and get Data Dragon image URL
   const formatChampionName = (name: string) => {
-    // Handle special cases for champion names that differ in asset filenames
+    // Handle special cases for champion names that differ in Data Dragon filenames
     const specialCases: { [key: string]: string } = {
       "Nunu & Willump": "Nunu",
       Wukong: "MonkeyKing",
@@ -134,11 +134,12 @@ export default function MatchCard({
     return specialCases[name] || name.replace(/[^a-zA-Z0-9]/g, "");
   };
 
-  const championImageUrl = `assets/champion/${formatChampionName(
+  const gameVersion = matchData.info.gameVersion.split(".").slice(0, 2).join(".") + ".1";
+  const championImageUrl = `https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/champion/${formatChampionName(
     currentPlayer.championName
   )}.png`;
   const getItemImageUrl = (itemId: number) =>
-    itemId === 0 ? null : `assets/item/${itemId}.png`;
+    itemId === 0 ? null : `https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/item/${itemId}.png`;
 
   return (
     <div
@@ -198,25 +199,13 @@ export default function MatchCard({
                 alt={currentPlayer.championName}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  // Fallback to Data Dragon if local asset fails, then to initials
+                  // Show initials fallback if Data Dragon fails
                   const target = e.target as HTMLImageElement;
-                  if (target.src.includes("assets/")) {
-                    // Try Data Dragon as fallback
-                    const gameVersion = matchData.info.gameVersion
-                      .split(".")
-                      .slice(0, 2)
-                      .join(".");
-                    target.src = `https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/champion/${formatChampionName(
-                      currentPlayer.championName
-                    )}.png`;
-                  } else {
-                    // Show initials fallback
-                    target.style.display = "none";
-                    const fallback = target.nextElementSibling as HTMLElement;
-                    if (fallback) {
-                      fallback.classList.remove("hidden");
-                      fallback.classList.add("flex");
-                    }
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) {
+                    fallback.classList.remove("hidden");
+                    fallback.classList.add("flex");
                   }
                 }}
               />
@@ -424,24 +413,14 @@ export default function MatchCard({
                         alt={`Item ${itemId}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // Fallback to Data Dragon if local asset fails, then to item ID
+                          // Show item ID fallback if Data Dragon fails
                           const target = e.target as HTMLImageElement;
-                          if (target.src.includes("assets/")) {
-                            // Try Data Dragon as fallback
-                            const gameVersion = matchData.info.gameVersion
-                              .split(".")
-                              .slice(0, 2)
-                              .join(".");
-                            target.src = `https://ddragon.leagueoflegends.com/cdn/${gameVersion}/img/item/${itemId}.png`;
-                          } else {
-                            // Show item ID fallback
-                            target.style.display = "none";
-                            const fallback =
-                              target.nextElementSibling as HTMLElement;
-                            if (fallback) {
-                              fallback.classList.remove("hidden");
-                              fallback.classList.add("flex");
-                            }
+                          target.style.display = "none";
+                          const fallback =
+                            target.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove("hidden");
+                            fallback.classList.add("flex");
                           }
                         }}
                       />
