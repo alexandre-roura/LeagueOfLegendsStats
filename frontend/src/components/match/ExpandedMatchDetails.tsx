@@ -160,7 +160,6 @@ export default function ExpandedMatchDetails({
         ([a], [b]) => a - b
       );
 
-      console.log("First participant data:", matchData.info.participants[0].playerSubteamId);
       return (
         <div className="space-y-4">
           {allTeams.map(([placement, team], teamIndex) => (

@@ -4,6 +4,60 @@
 
 import type { MatchDto } from "../types/Match";
 
+// Cache pour éviter de faire trop de requêtes
+let cachedLatestVersion: string | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Fetches the latest game version from Riot's Data Dragon API
+ * @returns Promise<string> The latest game version
+ */
+async function fetchLatestGameVersion(): Promise<string> {
+  try {
+    const response = await fetch(
+      "https://ddragon.leagueoflegends.com/api/versions.json"
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch versions: ${response.status}`);
+    }
+
+    const versions: string[] = await response.json();
+    return versions[0]; // La première version est toujours la plus récente
+  } catch (error) {
+    console.warn("Failed to fetch latest game version, using fallback:", error);
+    return "15.13.1"; // Fallback version
+  }
+}
+
+/**
+ * Gets the latest available game version for Data Dragon with caching
+ * @returns Promise<string> The latest game version string
+ */
+export async function getLatestGameVersion(): Promise<string> {
+  const now = Date.now();
+
+  // Utiliser le cache si disponible et pas expiré
+  if (cachedLatestVersion && now - cacheTimestamp < CACHE_DURATION) {
+    return cachedLatestVersion;
+  }
+
+  // Récupérer la nouvelle version
+  const latestVersion = await fetchLatestGameVersion();
+  cachedLatestVersion = latestVersion;
+  cacheTimestamp = now;
+
+  return latestVersion;
+}
+
+/**
+ * Gets the latest available game version synchronously (uses cached value or fallback)
+ * @returns The latest game version string
+ */
+export function getLatestGameVersionSync(): string {
+  return cachedLatestVersion || "15.13.1";
+}
+
 /**
  * Extracts and formats the game version from match data
  * @param gameVersion - The raw game version from match data (e.g., "14.23.590.9183")
@@ -12,7 +66,7 @@ import type { MatchDto } from "../types/Match";
  */
 export function getFormattedGameVersion(
   gameVersion?: string,
-  fallbackVersion: string = getLatestGameVersion()
+  fallbackVersion: string = getLatestGameVersionSync()
 ): string {
   if (!gameVersion) {
     return fallbackVersion;
@@ -36,18 +90,9 @@ export function getFormattedGameVersion(
  */
 export function getGameVersionFromMatch(
   matchData?: MatchDto,
-  fallbackVersion: string = getLatestGameVersion()
+  fallbackVersion: string = getLatestGameVersionSync()
 ): string {
   return getFormattedGameVersion(matchData?.info.gameVersion, fallbackVersion);
-}
-
-/**
- * Gets the latest available game version for Data Dragon
- * This can be extended to fetch from Riot's version API in the future
- * @returns The latest game version string
- */
-export function getLatestGameVersion(): string {
-  return "15.13.1";
 }
 
 /**
@@ -59,3 +104,8 @@ export function isValidGameVersion(version: string): boolean {
   const versionRegex = /^\d+\.\d+\.\d+$/;
   return versionRegex.test(version);
 }
+
+// Initialize cache au chargement du module
+getLatestGameVersion().catch(() => {
+  // Si l'initialisation échoue, on utilise la version de fallback
+});

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import type { PlayerData } from "../types/Player";
 import RankIcon from "./RankIcon";
 import MatchCard from "./MatchCard";
-import { getApiUrl, API_CONFIG } from "../config/api";
+import ErrorBoundary from "./ErrorBoundary";
+import { matchService, getErrorMessage } from "../services/api";
 
 interface PlayerInfoProps {
   playerData: PlayerData;
@@ -28,23 +29,16 @@ export default function PlayerInfo({
       setMatchError(null);
 
       try {
-        const endpoint = API_CONFIG.ENDPOINTS.MATCH_HISTORY(summoner.puuid);
-        const url = getApiUrl(endpoint) + `?region=${region}&start=0&count=10`;
-        console.log(`Fetching match history from: ${url}`);
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch match history: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setMatchHistory(data.data);
-        } else {
-          throw new Error("Failed to fetch match history from server");
-        }
+        const matchIds = await matchService.getMatchHistory(
+          summoner.puuid,
+          region,
+          0,
+          10
+        );
+        setMatchHistory(matchIds);
       } catch (error) {
         console.error("Error fetching match history:", error);
-        setMatchError(error instanceof Error ? error.message : "Unknown error");
+        setMatchError(getErrorMessage(error));
       } finally {
         setLoadingMatches(false);
       }
@@ -63,59 +57,45 @@ export default function PlayerInfo({
   };
 
   const getQueueIcon = (queueType: string) => {
-    const icons: { [key: string]: string } = {
-      RANKED_SOLO_5x5: "👤",
+    const queueIcons: { [key: string]: string } = {
+      RANKED_SOLO_5x5: "⚔️",
       RANKED_FLEX_SR: "👥",
-      RANKED_FLEX_TT: "🏆",
+      RANKED_FLEX_TT: "🔺",
     };
-    return icons[queueType] || "🎮";
+    return queueIcons[queueType] || "🎮";
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Player Header - Full Width */}
-      <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-8">
+      {/* Player Header */}
+      <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-lg rounded-2xl p-8 border border-gray-700/50 shadow-xl">
+        <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-6">
           {/* Profile Icon */}
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-lol-gold to-yellow-500 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-lol-gold/20 to-lol-gold/5 border-2 border-lol-gold/30 flex items-center justify-center overflow-hidden">
               <img
-                src={`https://ddragon.leagueoflegends.com/cdn/15.13.1/img/profileicon/${summoner.profileIconId}.png`}
-                alt={`Profile Icon ${summoner.profileIconId}`}
+                src={`https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/${summoner.profileIconId}.png`}
+                alt="Profile Icon"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  // Show profile icon ID as fallback
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) {
-                    fallback.classList.remove("hidden");
-                    fallback.classList.add("flex");
-                  }
+                  e.currentTarget.src = "/api/placeholder/96/96";
                 }}
               />
-              <span className="hidden text-xl font-bold text-lol-dark items-center justify-center w-full h-full">
-                {summoner.profileIconId}
-              </span>
             </div>
-            <div className="absolute -bottom-1 -right-1 bg-lol-gold text-lol-dark px-1.5 py-0.5 rounded-md text-xs font-bold">
+            <div className="absolute -bottom-2 -right-2 bg-lol-gold text-gray-900 px-2 py-1 rounded-lg text-sm font-bold">
               {summoner.summonerLevel}
             </div>
           </div>
 
-          {/* Player Info - Aligned Left */}
-          <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+          {/* Player Info */}
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-lol-gold to-yellow-400 bg-clip-text text-transparent mb-2">
               {account.gameName}
-              <span className="text-lol-gold">#{account.tagLine}</span>
-            </h2>
-            <div className="flex items-center space-x-2 text-sm">
-              <span className="text-gray-300">Region: EUW</span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-300">
-                Level {summoner.summonerLevel}
-              </span>
-            </div>
+              <span className="text-gray-400 text-xl">#{account.tagLine}</span>
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Level {summoner.summonerLevel}
+            </p>
           </div>
         </div>
       </div>
@@ -186,30 +166,30 @@ export default function PlayerInfo({
 
                     {/* Compact Stats Grid */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="text-center">
-                        <p className="text-xs text-gray-400">Wins</p>
-                        <p className="text-lg font-bold text-green-400">
+                      <div className="bg-gray-700/30 rounded-lg p-2 text-center">
+                        <div className="text-green-400 font-bold text-lg">
                           {currentRanking.wins}
-                        </p>
+                        </div>
+                        <div className="text-xs text-gray-400">Wins</div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-xs text-gray-400">Losses</p>
-                        <p className="text-lg font-bold text-red-400">
+                      <div className="bg-gray-700/30 rounded-lg p-2 text-center">
+                        <div className="text-red-400 font-bold text-lg">
                           {currentRanking.losses}
-                        </p>
+                        </div>
+                        <div className="text-xs text-gray-400">Losses</div>
                       </div>
                     </div>
 
                     {/* Win Rate */}
-                    <div className="text-center mb-4">
-                      <div className="inline-flex items-center space-x-2">
-                        <span className="text-sm text-gray-400">Win Rate:</span>
-                        <span className="text-lg font-bold text-lol-gold">
-                          {Math.round(
+                    <div className="bg-gray-700/30 rounded-lg p-3 mb-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-400">Win Rate</span>
+                        <span className="text-white font-bold">
+                          {(
                             (currentRanking.wins /
                               (currentRanking.wins + currentRanking.losses)) *
-                              100
-                          )}
+                            100
+                          ).toFixed(1)}
                           %
                         </span>
                       </div>
@@ -290,19 +270,29 @@ export default function PlayerInfo({
             ) : (
               <div className="space-y-3">
                 {matchHistory.slice(0, 10).map((matchId) => (
-                  <MatchCard
+                  <ErrorBoundary
                     key={matchId}
-                    matchId={matchId}
-                    currentPlayerPuuid={summoner.puuid}
-                    region={region}
-                  />
+                    fallback={
+                      <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+                        <p className="text-yellow-400 text-sm">
+                          Failed to load match {matchId}
+                        </p>
+                      </div>
+                    }
+                  >
+                    <MatchCard
+                      matchId={matchId}
+                      currentPlayerPuuid={summoner.puuid}
+                      region={region}
+                    />
+                  </ErrorBoundary>
                 ))}
 
                 {matchHistory.length > 10 && (
                   <div className="text-center pt-4">
-                    <button className="px-4 py-2 bg-lol-gold/20 hover:bg-lol-gold/30 text-lol-gold rounded-lg transition-colors duration-200">
-                      Load More ({matchHistory.length - 10} more)
-                    </button>
+                    <p className="text-gray-400 text-sm">
+                      Showing 10 of {matchHistory.length} matches
+                    </p>
                   </div>
                 )}
               </div>
