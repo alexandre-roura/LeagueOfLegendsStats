@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { usePlayerSearch } from "../../hooks/useQueries";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,10 @@ export default function Layout({ children }: LayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("EUW");
 
-  const handleQuickSearch = (e: React.FormEvent) => {
+  // React Query mutation pour la recherche
+  const playerSearchMutation = usePlayerSearch();
+
+  const handleQuickSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -19,7 +23,20 @@ export default function Layout({ children }: LayoutProps) {
     const name = parts[0];
     const tag = parts[1] || "EUW"; // Tag par défaut si non spécifié
 
-    navigate(`/summoners/${selectedRegion}/${name}-${tag}/overview`);
+    // Utilise React Query mutation pour pré-charger les données
+    try {
+      await playerSearchMutation.mutateAsync({
+        name,
+        tag,
+        region: selectedRegion,
+      });
+      // Navigation après succès de la requête
+      navigate(`/summoners/${selectedRegion}/${name}-${tag}/overview`);
+    } catch (error) {
+      // En cas d'erreur, navigue quand même (l'erreur sera gérée par SummonerPage)
+      console.warn("Pre-search failed, navigating anyway:", error);
+      navigate(`/summoners/${selectedRegion}/${name}-${tag}/overview`);
+    }
   };
 
   return (
@@ -105,9 +122,10 @@ export default function Layout({ children }: LayoutProps) {
 
               <button
                 type="submit"
-                className="bg-lol-gold hover:bg-lol-gold/80 text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors"
+                disabled={playerSearchMutation.isPending}
+                className="bg-lol-gold hover:bg-lol-gold/80 disabled:bg-lol-gold/50 text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors"
               >
-                🔍
+                {playerSearchMutation.isPending ? "⏳" : "🔍"}
               </button>
             </form>
           </div>

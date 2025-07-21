@@ -115,7 +115,7 @@ async def get_match_history(
     puuid: str,
     region: str = Query(default="EUW", description="Region code (e.g., EUW, NA, KR)"),
     start: int = Query(default=0, description="Start index", ge=0),
-    count: int = Query(default=20, description="Number of matches to return", ge=1, le=100),
+    count: int = Query(default=20, description="Number of matches to return", ge=1, le=200),
     match_service: MatchService = Depends(get_match_service),
     logger: logging.Logger = Depends(get_logger)
 ):

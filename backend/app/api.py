@@ -291,7 +291,7 @@ class RiotApiClient:
         # Add query parameters
         params = {
             "start": start,
-            "count": min(count, 100)  # Cap at 100 as per API limit
+            "count": min(count, 200)  # Cap at 200 for better performance
         }
         
         logger.info(f"Fetching match history: {puuid} in region {region} (start={start}, count={count})")

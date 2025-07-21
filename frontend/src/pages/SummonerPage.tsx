@@ -1,19 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { ErrorBoundary } from "react-error-boundary";
 import PlayerInfo from "../components/PlayerInfo";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
-import ErrorBoundary from "../components/ErrorBoundary";
-import { playerService, getErrorMessage } from "../services/api";
-import type { PlayerData } from "../types/Player";
+import ErrorFallback from "../components/ErrorFallback";
+import { usePlayerQuery } from "../hooks/useQueries";
 
 export default function SummonerPage() {
   const { region, nameTag } = useParams<{ region: string; nameTag: string }>();
   const navigate = useNavigate();
-
-  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Parse name-tag format with useMemo to prevent infinite re-renders
   const parsedParams = useMemo(() => {
@@ -33,66 +30,46 @@ export default function SummonerPage() {
     return { name, tag, region: region.toUpperCase() };
   }, [nameTag, region]);
 
-  useEffect(() => {
-    const fetchPlayerData = async () => {
-      if (!parsedParams) {
-        setError("Invalid summoner URL format");
-        setLoading(false);
-        return;
-      }
-
-      const { name, tag, region } = parsedParams;
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const data = await playerService.getPlayerInfo(name, tag, region);
-        setPlayerData(data);
-      } catch (err) {
-        console.error("Error fetching player data:", err);
-        setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlayerData();
-  }, [parsedParams]);
+  // React Query pour charger les données du joueur
+  const {
+    data: playerData,
+    isLoading: loading,
+    error,
+    refetch,
+  } = usePlayerQuery({
+    name: parsedParams?.name || "",
+    tag: parsedParams?.tag || "",
+    region: parsedParams?.region || "",
+    enabled: !!parsedParams, // Active la query seulement si les params sont valides
+  });
 
   const handleRetry = () => {
-    if (parsedParams) {
-      // Reset states et relancer la requête
-      setError(null);
-      setLoading(true);
-      setPlayerData(null);
-
-      const { name, tag, region } = parsedParams;
-
-      // Force re-fetch via state change
-      const fetchPlayerData = async () => {
-        try {
-          const data = await playerService.getPlayerInfo(name, tag, region);
-          setPlayerData(data);
-        } catch (err) {
-          console.error("Error fetching player data:", err);
-          setError(getErrorMessage(err));
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchPlayerData();
-    }
+    // React Query refetch - beaucoup plus simple !
+    refetch();
   };
 
   // Validation des paramètres d'URL
   if (!parsedParams) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="container mx-auto px-4 py-8"
+      >
         <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-red-900/20 rounded-lg p-8 border border-red-500/30">
-            <div className="text-4xl mb-4">❌</div>
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="bg-red-900/20 rounded-lg p-8 border border-red-500/30"
+          >
+            <motion.div
+              animate={{ rotate: [0, -5, 5, 0] }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-4xl mb-4"
+            >
+              ❌
+            </motion.div>
             <h2 className="text-red-400 text-xl font-semibold mb-2">
               Invalid URL Format
             </h2>
@@ -100,42 +77,72 @@ export default function SummonerPage() {
               The summoner URL should be in format:
               /summoners/REGION/Name-Tag/overview
             </p>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/")}
               className="bg-lol-gold hover:bg-lol-gold/80 text-gray-900 px-6 py-2 rounded-lg font-medium transition-colors"
             >
               Go Home
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   const { name, tag, region: upperRegion } = parsedParams;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Loading State */}
-      {loading && (
-        <div className="text-center py-12">
-          <LoadingSpinner size="lg" text={`Loading ${name}#${tag}...`} />
-        </div>
-      )}
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => window.location.reload()}
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="container mx-auto px-4 py-8"
+      >
+        {/* Loading State */}
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12"
+          >
+            <LoadingSpinner size="lg" text={`Loading ${name}#${tag}...`} />
+          </motion.div>
+        )}
 
-      {/* Error State */}
-      {error && !loading && (
-        <ErrorMessage message={error} onRetry={handleRetry} />
-      )}
+        {/* Error State */}
+        {error && !loading && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <ErrorMessage
+              message={
+                error instanceof Error ? error.message : "An error occurred"
+              }
+              onRetry={handleRetry}
+            />
+          </motion.div>
+        )}
 
-      {/* Player Data */}
-      {playerData && !loading && !error && (
-        <div className="max-w-6xl mx-auto">
-          <ErrorBoundary>
+        {/* Player Data */}
+        {playerData && !loading && !error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="max-w-6xl mx-auto"
+          >
             <PlayerInfo playerData={playerData} region={upperRegion} />
-          </ErrorBoundary>
-        </div>
-      )}
-    </div>
+          </motion.div>
+        )}
+      </motion.div>
+    </ErrorBoundary>
   );
 }

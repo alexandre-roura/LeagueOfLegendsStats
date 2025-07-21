@@ -1,169 +1,234 @@
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import clsx from "clsx";
 
 interface SearchFormProps {
   onSearch: (summonerName: string, tagLine: string, region: string) => void;
-  loading: boolean;
+  loading?: boolean;
 }
 
-const REGIONS = [
-  { code: "EUW", label: "Europe West", endpoint: "euw1" },
-  { code: "NA", label: "North America", endpoint: "na1" },
-  { code: "KR", label: "Korea", endpoint: "kr" },
-  { code: "EUNE", label: "Europe Nordic & East", endpoint: "eun1" },
-  { code: "BR", label: "Brazil", endpoint: "br1" },
-  { code: "JP", label: "Japan", endpoint: "jp1" },
-  { code: "LAN", label: "Latin America North", endpoint: "la1" },
-  { code: "LAS", label: "Latin America South", endpoint: "la2" },
-  { code: "OCE", label: "Oceania", endpoint: "oc1" },
-  { code: "RU", label: "Russia", endpoint: "ru" },
-  { code: "TR", label: "Turkey", endpoint: "tr1" },
+const regions = [
+  { key: "EUW", label: "Europe West" },
+  { key: "NA", label: "North America" },
+  { key: "KR", label: "Korea" },
+  { key: "EUNE", label: "Europe Nordic & East" },
+  { key: "BR", label: "Brazil" },
+  { key: "JP", label: "Japan" },
+  { key: "LAN", label: "Latin America North" },
+  { key: "LAS", label: "Latin America South" },
+  { key: "OCE", label: "Oceania" },
+  { key: "RU", label: "Russia" },
+  { key: "TR", label: "Turkey" },
 ];
 
-export default function SearchForm({ onSearch, loading }: SearchFormProps) {
-  const [riotId, setRiotId] = useState("");
-  const [region, setRegion] = useState("EUW");
+// Schema de validation pour le formulaire original
+const SearchFormSchema = z.object({
+  summonerNameTag: z
+    .string()
+    .min(1, "Summoner name and tag are required")
+    .regex(/^.+#.+$/, "Format should be: SummonerName#TAG"),
+  region: z.string().min(1, "Region is required"),
+});
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (riotId.trim()) {
-      // Parse the Riot ID (format: "Name#Tag")
-      const parts = riotId.trim().split("#");
-      if (parts.length === 2) {
-        const [summonerName, tagLine] = parts;
-        if (summonerName && tagLine) {
-          onSearch(summonerName, tagLine, region);
-        }
-      }
+type SearchFormData = z.infer<typeof SearchFormSchema>;
+
+export default function SearchForm({
+  onSearch,
+  loading = false,
+}: SearchFormProps) {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    watch,
+  } = useForm<SearchFormData>({
+    resolver: zodResolver(SearchFormSchema),
+    defaultValues: {
+      summonerNameTag: "",
+      region: "EUW",
+    },
+  });
+
+  const onSubmit = async (data: SearchFormData) => {
+    try {
+      // Parse le format "Name#Tag"
+      const [name, tag] = data.summonerNameTag.split("#");
+      await onSearch(name.trim(), tag.trim(), data.region);
+      reset(); // Clear form after successful search
+    } catch (error) {
+      console.error("Search failed:", error);
     }
   };
 
-  return (
-    <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-lg rounded-2xl p-8 border border-gray-700/50 shadow-2xl hover:shadow-lol-gold/10 transition-all duration-300">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Form header */}
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-semibold text-lol-gold mb-2">
-            Search Summoner
-          </h3>
-          <p className="text-gray-400 text-sm">
-            Enter your Summoner Name (Name#Tag) and select your region
-          </p>
-        </div>
+  const isLoading = loading || isSubmitting;
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Summoner Name Input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="summonerName"
-              className="block text-sm font-medium text-gray-300"
-            >
-              Summoner Name
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                id="summonerName"
-                value={riotId}
-                onChange={(e) => setRiotId(e.target.value)}
-                placeholder="e.g., Faker#KR1"
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lol-gold focus:border-transparent transition-all duration-300 hover:border-gray-500"
-                disabled={loading}
+  // Validation simple pour désactiver le bouton
+  const watchedValues = watch();
+  const hasValidFormat =
+    watchedValues.summonerNameTag.includes("#") &&
+    watchedValues.summonerNameTag.trim().length > 2;
+  const isButtonDisabled = isLoading || !hasValidFormat;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-2xl mx-auto"
+    >
+      <div className="bg-gray-900/80 backdrop-blur-lg rounded-xl p-6 border border-gray-700/50">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-lol-gold to-yellow-400 bg-clip-text text-transparent">
+              Search Summoner
+            </h2>
+            <p className="text-gray-400 mt-2">
+              Enter summoner name and tag to view detailed statistics
+            </p>
+          </div>
+
+          {/* Form Fields - Original Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Summoner Name#Tag */}
+            <div className="md:col-span-3">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Summoner Name#Tag
+              </label>
+              <Controller
+                name="summonerNameTag"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <input
+                      {...field}
+                      type="text"
+                      placeholder="Faker#T1"
+                      className={clsx(
+                        "w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-400",
+                        "focus:ring-2 focus:ring-lol-gold focus:border-transparent transition-all",
+                        errors.summonerNameTag
+                          ? "border-red-500"
+                          : "border-gray-600"
+                      )}
+                    />
+                    {errors.summonerNameTag && (
+                      <p className="mt-1 text-sm text-red-400">
+                        {errors.summonerNameTag.message}
+                      </p>
+                    )}
+                  </div>
+                )}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <div className="w-1 h-6 bg-lol-gold/30 rounded-full"></div>
-              </div>
+            </div>
+
+            {/* Region Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Region
+              </label>
+              <Controller
+                name="region"
+                control={control}
+                render={({ field }) => (
+                  <div className="relative">
+                    <select
+                      {...field}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-transparent focus:ring-2 focus:ring-lol-gold focus:border-transparent transition-all appearance-none cursor-pointer"
+                    >
+                      {regions.map((region) => (
+                        <option
+                          key={region.key}
+                          value={region.key}
+                          className="text-white bg-gray-800"
+                        >
+                          {region.label}
+                        </option>
+                      ))}
+                    </select>
+                    {/* Affichage personnalisé de la valeur sélectionnée */}
+                    <div className="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none">
+                      <span className="text-white font-medium">
+                        {field.value}
+                      </span>
+                    </div>
+                    {/* Icône dropdown */}
+                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              />
             </div>
           </div>
 
-          {/* Region Selector */}
-          <div className="space-y-2">
-            <label
-              htmlFor="region"
-              className="block text-sm font-medium text-gray-300"
-            >
-              Region
-            </label>
-            <div className="relative">
-              <select
-                id="region"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lol-gold focus:border-transparent transition-all duration-300 hover:border-gray-500 appearance-none cursor-pointer"
-                disabled={loading}
-              >
-                {REGIONS.map((r) => (
-                  <option key={r.code} value={r.code} className="bg-gray-900">
-                    {r.code} - {r.label}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-gray-400"
+          {/* Submit Button */}
+          <motion.button
+            type="submit"
+            disabled={isButtonDisabled}
+            whileHover={!isButtonDisabled ? { scale: 1.02 } : {}}
+            whileTap={!isButtonDisabled ? { scale: 0.98 } : {}}
+            className={clsx(
+              "w-full bg-gradient-to-r from-lol-gold to-yellow-500 hover:from-yellow-500 hover:to-lol-gold",
+              "text-gray-900 font-semibold py-3 px-6 rounded-lg transition-all duration-200",
+              "transform active:scale-95",
+              isButtonDisabled
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:shadow-lg hover:shadow-lol-gold/25"
+            )}
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <motion.svg
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="-ml-1 mr-3 h-5 w-5 text-gray-900"
+                  xmlns="http://www.w3.org/2000/svg"
                   fill="none"
-                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading || !riotId.trim() || !riotId.includes("#")}
-          className="w-full relative px-6 py-4 bg-gradient-to-r from-lol-gold to-yellow-500 hover:from-yellow-500 hover:to-lol-gold disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-lol-dark font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-lol-gold/30 disabled:transform-none disabled:shadow-none group"
-        >
-          <div className="flex items-center justify-center space-x-2">
-            {loading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-lol-dark/30 border-t-lol-dark rounded-full animate-spin"></div>
-                <span>Searching...</span>
-              </>
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </motion.svg>
+                Searching...
+              </span>
             ) : (
-              <>
-                <span>🔍</span>
-                <span>Search Player</span>
-              </>
+              "Search Summoner"
             )}
-          </div>
+          </motion.button>
 
-          {/* Button glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-lol-gold/20 to-yellow-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur"></div>
-        </button>
-
-        {/* Format hint */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500 mb-2">
-            Format: YourName#YourTag (e.g., Faker#KR1, Player#EUW)
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {REGIONS.slice(0, 6).map((r) => (
-              <button
-                key={r.code}
-                type="button"
-                onClick={() => setRegion(r.code)}
-                className={`px-2 py-1 text-xs rounded-md transition-colors duration-200 ${
-                  region === r.code
-                    ? "bg-lol-gold/30 text-lol-gold border border-lol-gold/50"
-                    : "bg-gray-700/50 hover:bg-lol-gold/20 text-gray-400 hover:text-lol-gold"
-                }`}
-                disabled={loading}
-              >
-                {r.code}
-              </button>
-            ))}
+          {/* Quick Tips */}
+          <div className="text-center text-sm text-gray-400">
+            <p>💡 Example: "Faker#T1" in Korea</p>
           </div>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </motion.div>
   );
 }

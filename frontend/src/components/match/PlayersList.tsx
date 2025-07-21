@@ -1,11 +1,13 @@
 import type { ParticipantDto } from "../../types/Match";
 import { useChampionImageUrl } from "../../hooks/useChampionImageUrl";
+import { useNavigate } from "react-router-dom";
 
 interface PlayersListProps {
   participants: ParticipantDto[];
   currentPlayerPuuid: string;
   queueId: number;
   gameVersion: string;
+  region: string; // Added region prop for navigation
 }
 
 export default function PlayersList({
@@ -13,11 +15,28 @@ export default function PlayersList({
   currentPlayerPuuid,
   queueId,
   gameVersion,
+  region
 }: PlayersListProps) {
   const { getChampionImageUrl } = useChampionImageUrl(gameVersion);
+  const navigate = useNavigate();
 
   const truncateName = (name: string) => {
     return name.length > 8 ? name.slice(0, 5) + "..." : name;
+  };
+
+  const handlePlayerClick = (player: ParticipantDto) => {
+    // Extract name and tag from riotIdGameName and riotIdTagline or use summonerName
+    const name = player.riotIdGameName || player.summonerName;
+    const tag = player.riotIdTagline || "EUW"; // Default tag if not available
+
+    if (name) {
+      const regionWithoutNumber = region ? region.replace(/[0-9]/g, "") : "EUW";
+      navigate(
+        `/summoners/${regionWithoutNumber}/${encodeURIComponent(
+          name
+        )}-${encodeURIComponent(tag)}/overview`
+      );
+    }
   };
 
   // Arena mode (queue 1700)
@@ -62,7 +81,11 @@ export default function PlayersList({
                 {team.map((player, playerIndex) => (
                   <div
                     key={playerIndex}
-                    className="flex items-center space-x-1 flex-1 min-w-0"
+                    className="flex items-center space-x-1 flex-1 min-w-0 cursor-pointer hover:bg-gray-700/30 rounded px-1 py-0.5 transition-colors"
+                    onClick={() => handlePlayerClick(player)}
+                    title={`View ${
+                      player.riotIdGameName || player.summonerName
+                    }'s profile`}
                   >
                     <img
                       src={getChampionImageUrl(player.championName)}
@@ -77,7 +100,7 @@ export default function PlayersList({
                       }}
                     />
                     <span
-                      className={`text-xs truncate ${
+                      className={`text-xs truncate hover:text-white transition-colors ${
                         player.puuid === currentPlayerPuuid
                           ? "text-blue-400 font-medium"
                           : "text-gray-400"
@@ -104,7 +127,14 @@ export default function PlayersList({
   const renderTeam = (team: ParticipantDto[]) => (
     <div className="flex flex-col space-y-1">
       {team.map((player, playerIndex) => (
-        <div key={playerIndex} className="flex items-center space-x-1">
+        <div
+          key={playerIndex}
+          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-700/30 rounded px-1 py-0.5 transition-colors"
+          onClick={() => handlePlayerClick(player)}
+          title={`View ${
+            player.riotIdGameName || player.summonerName
+          }'s profile`}
+        >
           <img
             src={getChampionImageUrl(player.championName)}
             alt={player.championName}
@@ -118,7 +148,7 @@ export default function PlayersList({
             }}
           />
           <span
-            className={`text-xs max-w-[3rem] truncate ${
+            className={`text-xs max-w-[3rem] truncate hover:text-white transition-colors ${
               player.puuid === currentPlayerPuuid
                 ? "text-blue-400 font-medium"
                 : "text-gray-400"

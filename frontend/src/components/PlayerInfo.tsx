@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { motion, AnimatePresence } from "framer-motion";
 import type { PlayerData } from "../types/Player";
 import RankIcon from "./RankIcon";
 import MatchCard from "./MatchCard";
-import ErrorBoundary from "./ErrorBoundary";
-import { matchService, getErrorMessage } from "../services/api";
+import ErrorFallback from "./ErrorFallback";
+import LoadingSpinner from "./LoadingSpinner";
+import { useInfiniteMatchHistory } from "../hooks/useQueries";
 
 interface PlayerInfoProps {
   playerData: PlayerData;
@@ -18,34 +21,25 @@ export default function PlayerInfo({
   const [activeTab, setActiveTab] = useState(() =>
     rankings.length > 0 ? rankings[0].queueType : "RANKED_SOLO_5x5"
   );
-  const [matchHistory, setMatchHistory] = useState<string[]>([]);
-  const [loadingMatches, setLoadingMatches] = useState(false);
-  const [matchError, setMatchError] = useState<string | null>(null);
 
-  // Fetch match history when component mounts
-  useEffect(() => {
-    const fetchMatchHistory = async () => {
-      setLoadingMatches(true);
-      setMatchError(null);
+  // Use React Query for match history with infinite loading
+  const {
+    data: infiniteMatchData,
+    isLoading: loadingMatches,
+    error: matchError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteMatchHistory({
+    puuid: summoner.puuid,
+    region,
+    pageSize: 10,
+    enabled: !!summoner.puuid && !!region,
+  });
 
-      try {
-        const matchIds = await matchService.getMatchHistory(
-          summoner.puuid,
-          region,
-          0,
-          10
-        );
-        setMatchHistory(matchIds);
-      } catch (error) {
-        console.error("Error fetching match history:", error);
-        setMatchError(getErrorMessage(error));
-      } finally {
-        setLoadingMatches(false);
-      }
-    };
-
-    fetchMatchHistory();
-  }, [summoner.puuid, region]);
+  // Flatten all match pages into a single array
+  const matchHistory =
+    infiniteMatchData?.pages.flatMap((page) => page.matches) || [];
 
   const getQueueName = (queueType: string) => {
     const queueNames: { [key: string]: string } = {
@@ -252,47 +246,81 @@ export default function PlayerInfo({
             </h3>
 
             {loadingMatches ? (
-              <div className="text-center py-12">
-                <div className="w-8 h-8 border-2 border-lol-gold/30 border-t-lol-gold rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-400">Loading match history...</p>
-              </div>
+              <LoadingSpinner size="md" text="Loading match history..." />
             ) : matchError ? (
-              <div className="text-center py-12 text-red-400">
-                <div className="text-4xl mb-4">⚠️</div>
-                <p>Error loading match history</p>
-                <p className="text-sm text-gray-500 mt-2">{matchError}</p>
-              </div>
+              <ErrorFallback
+                error={
+                  matchError instanceof Error
+                    ? matchError
+                    : new Error(String(matchError))
+                }
+                resetErrorBoundary={() => window.location.reload()}
+              />
             ) : matchHistory.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12 text-gray-400"
+              >
                 <div className="text-4xl mb-4">📜</div>
                 <p>No match history found</p>
-              </div>
+              </motion.div>
             ) : (
+              // Simple list that grows naturally - no virtual scrolling or height limits
               <div className="space-y-3">
-                {matchHistory.slice(0, 10).map((matchId) => (
-                  <ErrorBoundary
-                    key={matchId}
-                    fallback={
-                      <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
-                        <p className="text-yellow-400 text-sm">
-                          Failed to load match {matchId}
-                        </p>
-                      </div>
-                    }
-                  >
-                    <MatchCard
-                      matchId={matchId}
-                      currentPlayerPuuid={summoner.puuid}
-                      region={region}
-                    />
-                  </ErrorBoundary>
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {matchHistory.map((matchId, index) => (
+                    <motion.div
+                      key={matchId}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                    >
+                      <ErrorBoundary
+                        FallbackComponent={({ resetErrorBoundary }) => (
+                          <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+                            <p className="text-yellow-400 text-sm">
+                              Failed to load match {matchId}
+                            </p>
+                            <button
+                              onClick={resetErrorBoundary}
+                              className="mt-2 text-xs text-yellow-300 hover:text-yellow-200 underline"
+                            >
+                              Try again
+                            </button>
+                          </div>
+                        )}
+                      >
+                        <MatchCard
+                          matchId={matchId}
+                          currentPlayerPuuid={summoner.puuid}
+                          region={region}
+                        />
+                      </ErrorBoundary>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
-                {matchHistory.length > 10 && (
-                  <div className="text-center pt-4">
-                    <p className="text-gray-400 text-sm">
-                      Showing 10 of {matchHistory.length} matches
-                    </p>
+                {/* Load More Button */}
+                {hasNextPage && (
+                  <div className="text-center pt-6">
+                    <button
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      className="bg-lol-gold hover:bg-lol-gold/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-900 disabled:text-gray-400 px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 mx-auto"
+                    >
+                      {isFetchingNextPage ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Load More Matches</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
               </div>

@@ -1,64 +1,56 @@
 import { useState, useEffect } from "react";
 import type { MatchDto } from "../types/Match";
-import { getApiUrl, API_CONFIG } from "../config/api";
+import { useMatchQuery } from "./useQueries";
 
 interface UseMatchDataProps {
   matchId: string;
   region: string;
+  enabled?: boolean;
 }
 
 interface UseMatchDataReturn {
   matchData: MatchDto | null;
   loading: boolean;
-  error: string | null;
+  error: Error | null;
   showContent: boolean;
 }
 
 export function useMatchData({
   matchId,
   region,
+  enabled = true,
 }: UseMatchDataProps): UseMatchDataReturn {
-  const [matchData, setMatchData] = useState<MatchDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showContent, setShowContent] = useState(false);
 
+  // Use React Query for match data
+  const {
+    data: matchData,
+    isLoading,
+    error,
+  } = useMatchQuery({
+    matchId,
+    region,
+    enabled,
+  });
+
+  // Handle content visibility with animation delay
   useEffect(() => {
-    const fetchMatchDetails = async () => {
-      try {
-        const endpoint = API_CONFIG.ENDPOINTS.MATCH_DETAILS(matchId);
-        const url = getApiUrl(endpoint) + `?region=${region}`;
-        const response = await fetch(url);
+    if (!isLoading && matchData) {
+      // Add a minimum delay for smooth animations
+      const timer = setTimeout(() => {
+        setShowContent(true);
+      }, 150);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch match details: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setMatchData(data.data);
-        } else {
-          throw new Error("Failed to fetch match details from server");
-        }
-      } catch (error) {
-        console.error("Error fetching match details:", error);
-        setError(error instanceof Error ? error.message : "Unknown error");
-      } finally {
-        // Add a minimum loading time for better UX
-        setTimeout(() => {
-          setLoading(false);
-          setShowContent(true);
-        }, 300);
-      }
-    };
-
-    fetchMatchDetails();
-  }, [matchId, region]);
+      return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
+    }
+  }, [isLoading, matchData]);
 
   return {
-    matchData,
-    loading,
-    error,
+    matchData: matchData || null,
+    loading: isLoading,
+    error: error as Error | null,
     showContent,
   };
 }

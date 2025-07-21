@@ -1,3 +1,6 @@
+import { motion } from "framer-motion";
+import clsx from "clsx";
+
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
   text?: string;
@@ -14,42 +17,62 @@ export default function LoadingSpinner({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-12 space-y-4">
-      {/* Outer ring */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center justify-center py-12 space-y-4"
+    >
+      {/* Outer ring with Framer Motion */}
       <div className="relative">
-        <div
-          className={`${sizeClasses[size]} border-4 border-gray-700 rounded-full animate-spin`}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className={clsx(
+            sizeClasses[size],
+            "border-4 border-gray-700 rounded-full"
+          )}
         >
-          <div
-            className="absolute inset-0 border-4 border-transparent border-t-lol-gold rounded-full animate-spin"
-            style={{ animationDuration: "1s" }}
-          ></div>
-        </div>
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 border-4 border-transparent border-t-lol-gold rounded-full"
+          />
+        </motion.div>
 
-        {/* Inner ring */}
-        <div
-          className={`absolute inset-2 border-2 border-gray-600 rounded-full animate-spin`}
-          style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-        >
-          <div
-            className="absolute inset-0 border-2 border-transparent border-r-lol-gold/70 rounded-full animate-spin"
-            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-          ></div>
-        </div>
+        {/* Inner ring with counter-rotation */}
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+          className={clsx(
+            "absolute inset-2 border-2 border-transparent border-b-lol-gold rounded-full",
+            size === "sm" && "inset-1 border-1",
+            size === "lg" && "inset-3 border-3"
+          )}
+        />
 
         {/* Center dot */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-2 h-2 bg-lol-gold rounded-full animate-pulse"></div>
-        </div>
+        <motion.div
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <div className="w-2 h-2 bg-lol-gold rounded-full" />
+        </motion.div>
       </div>
 
-      {/* Loading text */}
-      <div className="text-center">
-        <p className="text-lol-gold font-semibold animate-pulse">{text}</p>
+      {/* Loading text with breathing animation */}
+      <motion.div
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="text-center"
+      >
+        <p className="text-lol-gold font-semibold">{text}</p>
         <p className="text-gray-400 text-sm mt-1">
           Summoning data from the Rift...
         </p>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
